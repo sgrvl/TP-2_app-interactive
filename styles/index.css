@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,700;1,400&display=swap');
+
+* {
+	box-sizing: border-box;
+	font-family: 'Nunito', sans-serif;
+}
+
+body {
+	margin: 0;
+}
+
+#map {
+	height: 95vh;
+	width: 100%;
+}
+
+h1 {
+	height: 5vh;
+	margin: 0;
+	background-color: rgb(128, 73, 25);
+	padding: 0.25rem 1rem;
+	color: white;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: clamp(1rem, 2.5vw, 2rem);
+}
+
+.leaflet-control-attribution {
+	max-width: 60vw !important;
+}
+
+.leaflet-control-layers-base {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+}
+
+.leaflet-control-layers-overlays {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	position: relative;
+	gap: 0.25rem;
+}
+
+.legende {
+	margin-right: 30px;
+}
+
+.legende::after {
+	content: '';
+	position: absolute;
+	right: 0;
+	height: 12px;
+	width: 12px;
+	border-radius: 2px;
+	border: solid 2px;
+	margin-left: 0.25rem;
+	margin-top: 3px;
+}
+
+.darkgreen::after {
+	background-color: rgba(0, 100, 0, 0.25);
+	border-color: darkgreen;
+}
+
+.red::after {
+	background-color: rgba(255, 0, 0, 0.25);
+	border-color: red;
+}
+
+.darkblue::after {
+	background-color: rgba(0, 0, 139, 0.25);
+	border-color: darkblue;
+}
+
+.orange::after {
+	background-color: rgba(255, 165, 0, 0.25);
+	border-color: orange;
+}
+
+.turquoise::after {
+	background-color: rgba(64, 224, 208, 0.25);
+	border-color: turquoise;
+}
