@@ -6,11 +6,39 @@ map.attributionControl.addAttribution('Simon Gravel &copy; 2022');
 L.control.scale({ maxWidth: 250, imperial: false }).addTo(map);
 L.control.zoom({ position: 'bottomright' }).addTo(map);
 
+// Get météo
+const urlMeteo = (lat, lon) =>
+	`http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&lang=fr&appid=71120fe8a00794d729e3665fde5601b5`;
+
+const asyncMeteo = async (lat, lon) => await (await fetch(urlMeteo(lat, lon))).json();
+
 // Géolocalisation
 map.locate({ setView: true, maxZoom: 16 });
-map.on('locationfound', (e) => L.marker(e.latlng).addTo(map).bindPopup('Vous êtes ici.').openPopup());
+map.on('locationfound', (e) => {
+	asyncMeteo(e.latlng.lat, e.latlng.lng).then((dataMeteo) => {
+		L.marker(e.latlng)
+			.addTo(map)
+			.bindPopup(
+				`
+				<p>Vous êtes ici.</p>
+				<p>${e.latlng.lat}, ${e.latlng.lng}</p>
+				<div class='meteo'>
+					<h3>Météo</h3>							
+    				<img src=http://openweathermap.org/img/w/${dataMeteo.weather[0].icon}.png>
+					<p>${dataMeteo.weather[0].description}</p>
+					<p>${dataMeteo.main.temp} C&deg;</p>
+					<p>Ressentie : ${dataMeteo.main.feels_like} C&deg;</p>
+				</div>						
+					`
+			)
+			.openPopup();
+	});
+});
 
-const url = (layer) => `https://servicescarto.mern.gouv.qc.ca/pes/rest/services/Territoire/TRQ_WMS/MapServer/${layer}`;
+const urlParcs = (layer) =>
+	`https://servicescarto.mern.gouv.qc.ca/pes/rest/services/Territoire/TRQ_WMS/MapServer/${layer}`;
+
+const urlRegions = 'https://servicescarto.mern.gouv.qc.ca/pes/rest/services/Territoire/SDA_WMS/MapServer/0';
 
 // Style de base des poly
 const featureStyle = (color) => ({
@@ -28,32 +56,43 @@ const basemaps = {
 const overlays = {
 	'<span class="legende darkgreen">Parc national du Québec</span>': L.esri
 		.featureLayer({
-			url: url(5),
+			url: urlParcs(5),
 			style: () => featureStyle('darkgreen'),
 		})
 		.addTo(map),
 	'<span class="legende red">Parc national du Canada</span>': L.esri
 		.featureLayer({
-			url: url(4),
+			url: urlParcs(4),
 			style: () => featureStyle('red'),
 		})
 		.addTo(map),
 	'<span class="legende darkblue">Parc marin</span>': L.esri
 		.featureLayer({
-			url: url(3),
+			url: urlParcs(3),
 			style: () => featureStyle('darkblue'),
 		})
 		.addTo(map),
 	'<span class="legende orange">Parc régional</span>': L.esri
 		.featureLayer({
-			url: url(6),
+			url: urlParcs(6),
 			style: () => featureStyle('orange'),
 		})
 		.addTo(map),
 	'<span class="legende turquoise">Réserve faunique</span>': L.esri
 		.featureLayer({
-			url: url(11),
+			url: urlParcs(11),
 			style: () => featureStyle('turquoise'),
+		})
+		.addTo(map),
+	'<span class="legende black">Régions administratives</span>': L.esri
+		.featureLayer({
+			url: urlRegions,
+			style: () => ({
+				weight: 2,
+				color: 'black',
+				opacity: 0.25,
+				fillColor: 'transparent',
+			}),
 		})
 		.addTo(map),
 };
@@ -76,10 +115,6 @@ const searchControl = L.esri.Geocoding.geosearch({
 }).addTo(map);
 
 const results = L.layerGroup().addTo(map);
-
-// Météo
-const urlMeteo = (lat, lon) =>
-	`http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&lang=fr&appid=71120fe8a00794d729e3665fde5601b5`;
 
 searchControl.on('results', (data) => {
 	results.clearLayers();
@@ -108,13 +143,3 @@ searchControl.on('results', (data) => {
 		});
 	}
 });
-
-const asyncMeteo = async (lat, lon) => await (await fetch(urlMeteo(lat, lon))).json();
-
-// function afficheMeteo(lat, lon) {
-// 	fetch(urlMeteo(lat, lon))
-// 		.then((res) => res.json())
-// 		.then((data) => console.log(data));
-// }
-
-// afficheMeteo(35, 136);
