@@ -29,7 +29,7 @@ map.on('locationfound', (e) => {
 					<p>${dataMeteo.main.temp} C&deg;</p>
 					<p>Ressentie : ${dataMeteo.main.feels_like} C&deg;</p>
 				</div>						
-					`
+				`
 			)
 			.openPopup();
 	});
@@ -125,6 +125,41 @@ function gererTooltip() {
 }
 gererTooltip();
 
+const results = L.layerGroup().addTo(map);
+let clickMarker = {};
+map.on('click', (e) => {
+	if (clickMarker != undefined) {
+		results.clearLayers();
+		map.removeLayer(clickMarker);
+	}
+
+	const lat = e.latlng.lat;
+	const lng = e.latlng.lng;
+	const emplacement = document.querySelector('#tooltip').innerHTML;
+
+	console.log(emplacement);
+
+	clickMarker = new L.marker(e.latlng).addTo(map);
+
+	asyncMeteo(lat, lng).then((data) => {
+		console.log(data);
+		clickMarker
+			.bindPopup(
+				`
+				<p>${emplacement}</p>
+				<div class='meteo'>
+					<h3>Météo</h3>							
+					<img src=http://openweathermap.org/img/w/${data.weather[0].icon}.png>
+					<p>${data.weather[0].description}</p>
+					<p>${data.main.temp} C&deg;</p>
+					<p>Ressentie : ${data.main.feels_like} C&deg;</p>
+				</div>
+				`
+			)
+			.openPopup();
+	});
+});
+
 // Recherche
 const searchControl = L.esri.Geocoding.geosearch({
 	position: 'topright',
@@ -141,8 +176,6 @@ const searchControl = L.esri.Geocoding.geosearch({
 	],
 }).addTo(map);
 
-const results = L.layerGroup().addTo(map);
-
 searchControl.on('results', (data) => {
 	results.clearLayers();
 	for (let i = data.results.length - 1; i >= 0; i--) {
@@ -155,16 +188,18 @@ searchControl.on('results', (data) => {
 
 		asyncMeteo(latLonSplit[0], latLonSplit[1].trim()).then((dataMeteo) => {
 			console.log(dataMeteo);
-			marker.bindPopup(`
-						<p>${lngLatString}</p>
-						<div class='meteo'>
-							<h3>Météo</h3>							
-    						<img src=http://openweathermap.org/img/w/${dataMeteo.weather[0].icon}.png>
-							<p>${dataMeteo.weather[0].description}</p>
-							<p>${dataMeteo.main.temp} C&deg;</p>
-							<p>Ressentie : ${dataMeteo.main.feels_like} C&deg;</p>
-						</div>						
-						<p>${data.results[i].properties.LongLabel}</p>`);
+			marker.bindPopup(
+				`
+				<p>${data.results[i].properties.LongLabel}</p>
+				<div class='meteo'>
+					<h3>Météo</h3>							
+    				<img src=http://openweathermap.org/img/w/${dataMeteo.weather[0].icon}.png>
+					<p>${dataMeteo.weather[0].description}</p>
+					<p>${dataMeteo.main.temp} C&deg;</p>
+					<p>Ressentie : ${dataMeteo.main.feels_like} C&deg;</p>
+				</div>						
+				`
+			);
 			results.addLayer(marker);
 			marker.openPopup();
 		});
