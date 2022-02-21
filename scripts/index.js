@@ -54,6 +54,17 @@ const basemaps = {
 };
 
 const overlays = {
+	'<span class="legende black">Régions administratives</span>': L.esri
+		.featureLayer({
+			url: urlRegions,
+			style: () => ({
+				weight: 2,
+				color: 'black',
+				opacity: 0.25,
+				fillColor: 'transparent',
+			}),
+		})
+		.addTo(map),
 	'<span class="legende darkgreen">Parc national du Québec</span>': L.esri
 		.featureLayer({
 			url: urlParcs(5),
@@ -84,19 +95,35 @@ const overlays = {
 			style: () => featureStyle('turquoise'),
 		})
 		.addTo(map),
-	'<span class="legende black">Régions administratives</span>': L.esri
-		.featureLayer({
-			url: urlRegions,
-			style: () => ({
-				weight: 2,
-				color: 'black',
-				opacity: 0.25,
-				fillColor: 'transparent',
-			}),
-		})
-		.addTo(map),
 };
 L.control.layers(basemaps, overlays, { collapsed: true }).addTo(map);
+
+// "Tooltip"
+// J'ai eu du trouble avec getLatLng() pour trouver le centre... Solution alternative
+function gererTooltip() {
+	const tooltip = document.querySelector('#tooltip');
+
+	if (tooltip.innerHTML === '') {
+		tooltip.style.display = 'none';
+	}
+
+	Object.values(overlays).map((overlay) => {
+		overlay.on('mouseover', (e) => {
+			const props = e.layer.feature.properties;
+
+			if (props.RES_NM_REG) {
+				tooltip.style.display = 'block';
+				tooltip.innerHTML = props.RES_NM_REG;
+			}
+
+			if (props.TRQ_NM_TER) {
+				tooltip.style.display = 'block';
+				tooltip.innerHTML = props.TRQ_NM_TER;
+			}
+		});
+	});
+}
+gererTooltip();
 
 // Recherche
 const searchControl = L.esri.Geocoding.geosearch({
